@@ -1,0 +1,5 @@
+aiohttp==3.11.11
+uvicorn
+fastapi
+playwright
+httpx
