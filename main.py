@@ -37,7 +37,6 @@ async def embed_viewer(video_id: str):
                         'controls': 1,
                         'autoplay': 1,
                         'mute': 1,
-                        'cc_load_policy': 1,   // Start with captions ON
                         'enablejsapi': 1,
                         'modestbranding': 1,
                         'rel': 0,
@@ -52,12 +51,10 @@ async def embed_viewer(video_id: str):
 
             function onPlayerReady(event) {{
                 console.log('Player ready. Toggling captions off then on...');
-                // Turn captions OFF programmatically
-                player.setOption('captions', 'track', {{}});
                 // Then after a short delay, turn them back ON in English
                 setTimeout(function() {{
                     player.setOption('captions', 'track', {{ languageCode: 'en' }});
-                }}, 1000);
+                }}, 500);
             }}
 
             function onPlayerStateChange(event) {{
