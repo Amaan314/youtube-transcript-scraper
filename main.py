@@ -9,7 +9,7 @@ app = FastAPI()
 async def embed_viewer(video_id: str):
     """
     Serves a minimal HTML page containing a YouTube video embed.
-    This page is visited by the headless browser to trigger caption loading.
+    This page is visited by the headless browser to trigger caption loading and toggling.
     """
     embed_html = f"""
     <!DOCTYPE html>
@@ -25,7 +25,7 @@ async def embed_viewer(video_id: str):
         <div id="player"></div>
         <script>
             var tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api"; // Official YouTube IFrame Player API
+            tag.src = "https://www.youtube.com/iframe_api";
             var firstScriptTag = document.getElementsByTagName('script')[0];
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
@@ -36,12 +36,12 @@ async def embed_viewer(video_id: str):
                     playerVars: {{
                         'controls': 1,
                         'autoplay': 1,
-                        'mute': 1, // Mute for autoplay (required by modern browsers)
-                        'cc_load_policy': 1, // Crucially, enable captions automatically
+                        'mute': 1,
+                        'cc_load_policy': 1,   // Start with captions ON
                         'enablejsapi': 1,
                         'modestbranding': 1,
-                        'rel': 0, // Don't show related videos
-                        'showinfo': 0 // Don't show video title/uploader info
+                        'rel': 0,
+                        'showinfo': 0
                     }},
                     events: {{
                         'onReady': onPlayerReady,
@@ -51,12 +51,17 @@ async def embed_viewer(video_id: str):
             }}
 
             function onPlayerReady(event) {{
-                // Player is ready, captions should be attempting to load internally
-                console.log('Player ready and trying to load captions.');
+                console.log('Player ready. Toggling captions off then on...');
+                // Turn captions OFF programmatically
+                player.setOption('captions', 'track', {{}});
+                // Then after a short delay, turn them back ON in English
+                setTimeout(function() {{
+                    player.setOption('captions', 'track', {{ languageCode: 'en' }});
+                }}, 1000);
             }}
 
             function onPlayerStateChange(event) {{
-                // Optional: You can log player state changes if debugging
+                // Optional debugging
                 // console.log('Player state changed:', event.data);
             }}
         </script>
@@ -64,6 +69,66 @@ async def embed_viewer(video_id: str):
     </html>
     """
     return HTMLResponse(content=embed_html)
+
+# @app.get("/embed-viewer", response_class=HTMLResponse)
+# async def embed_viewer(video_id: str):
+#     """
+#     Serves a minimal HTML page containing a YouTube video embed.
+#     This page is visited by the headless browser to trigger caption loading.
+#     """
+#     embed_html = f"""
+#     <!DOCTYPE html>
+#     <html>
+#     <head>
+#         <title>YouTube Embed Viewer</title>
+#         <style>
+#             body {{ margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #000; }}
+#             #player {{ width: 100vw; height: 100vh; }}
+#         </style>
+#     </head>
+#     <body>
+#         <div id="player"></div>
+#         <script>
+#             var tag = document.createElement('script');
+#             tag.src = "https://www.youtube.com/iframe_api"; // Official YouTube IFrame Player API
+#             var firstScriptTag = document.getElementsByTagName('script')[0];
+#             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+#             var player;
+#             function onYouTubeIframeAPIReady() {{
+#                 player = new YT.Player('player', {{
+#                     videoId: '{video_id}',
+#                     playerVars: {{
+#                         'controls': 1,
+#                         'autoplay': 1,
+#                         'mute': 1, // Mute for autoplay (required by modern browsers)
+#                         'cc_load_policy': 1, // Crucially, enable captions automatically
+#                         'enablejsapi': 1,
+#                         'modestbranding': 1,
+#                         'rel': 0, // Don't show related videos
+#                         'showinfo': 0 // Don't show video title/uploader info
+#                     }},
+#                     events: {{
+#                         'onReady': onPlayerReady,
+#                         'onStateChange': onPlayerStateChange
+#                     }}
+#                 }});
+#             }}
+
+#             function onPlayerReady(event) {{
+#                 // Player is ready, captions should be attempting to load internally
+#                 console.log('Player ready and trying to load captions.');
+#             }}
+
+#             function onPlayerStateChange(event) {{
+#                 // Optional: You can log player state changes if debugging
+#                 // console.log('Player state changed:', event.data);
+#             }}
+#         </script>
+#     </body>
+#     </html>
+#     """
+#     return HTMLResponse(content=embed_html)
 
 @app.get(
     "/video/transcript/{video_id}",
