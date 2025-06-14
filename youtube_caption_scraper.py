@@ -59,7 +59,7 @@ async def get_youtube_caption_url(video_id: str) -> str | None:
 
         try:
             # Construct the URL to your FastAPI's embed viewer endpoint
-            embed_viewer_url = f"http://127.0.0.1:7860/embed-viewer?video_id={video_id}"
+            embed_viewer_url = f"https://youtube-transcript-scraper-production.up.railway.app/embed-viewer?video_id={video_id}"
             # embed_viewer_url = f"https://amaanp314-youtube-ai-analyzer.hf.space/embed-viewer?video_id={video_id}"
             logger.info(f"Navigating headless browser to: {embed_viewer_url}")
 
